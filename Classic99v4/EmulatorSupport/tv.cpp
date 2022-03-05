@@ -3,6 +3,8 @@
 #include <allegro5/allegro.h>
 
 #include "Classic99v4.h"
+#include <cstdio>
+#include <allegro5/allegro_native_dialog.h>
 #include "debuglog.h"
 #include "tv.h"
 #include "automutex.h"
@@ -64,8 +66,15 @@ bool Classic99TV::init() {
             return false;
         }
 
+        al_register_event_source(evtQ, al_get_display_event_source(myWnd));
+        al_set_new_bitmap_format(ALLEGRO_PIXEL_FORMAT_ARGB_8888);   // let's see how well forcing it works...
+
+        // Windows needs to be a video bitmap, or the background color is not properly alpha'd (border goes black)
+        // Mac needs a memory bitmap, or the image is lost immediately after it's displayed (blank screen except during updates, lots of stretching and corruption)
+        // Linux appears to be similar
+        // Raspberry PI 4 requires memory bitmap, but has black borders suggesting the alpha isn't working. Framerate is also very dependent on window size suggesting no acceleration
 #ifdef ALLEGRO_WINDOWS
-        al_set_new_bitmap_flags(ALLEGRO_CONVERT_BITMAP|ALLEGRO_NO_PRESERVE_TEXTURE|ALLEGRO_ALPHA_TEST|ALLEGRO_MIN_LINEAR);
+        al_set_new_bitmap_flags(ALLEGRO_CONVERT_BITMAP|ALLEGRO_NO_PRESERVE_TEXTURE|ALLEGRO_ALPHA_TEST|ALLEGRO_MIN_LINEAR);    // old win
 #else
 #ifdef ALLEGRO_RASPBERRYPI
         al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP);
@@ -160,11 +169,15 @@ bool Classic99TV::runWindowLoop() {
     }
 
     if ((!dontDraw) && (drawReady)) {
+        // confirmed okay on Linux and Windows
+        // TODO: can we do these outside the loop?
+        al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_ZERO);
+        al_set_render_state(ALLEGRO_ALPHA_TEST, 1);
+        al_set_render_state(ALLEGRO_ALPHA_FUNCTION, ALLEGRO_RENDER_EQUAL);
+        al_set_render_state(ALLEGRO_ALPHA_TEST_VALUE, 255);
+
         // clear the backdrop
         al_clear_to_color(bgColor);
-
-        // confirmed okay on Linux and Windows
-        al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_ZERO);
 
         // render the layers
         for (unsigned int idx=0; idx<layers.size(); ++idx) {
