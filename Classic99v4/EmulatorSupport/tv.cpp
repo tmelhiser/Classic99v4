@@ -82,15 +82,19 @@ bool Classic99TV::init() {
         al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP);
 #endif
 #endif
+        al_set_display_option(myWnd,ALLEGRO_RENDER_METHOD,true);
+        
         al_set_render_state(ALLEGRO_ALPHA_TEST, true);
         al_set_render_state(ALLEGRO_ALPHA_FUNCTION, ALLEGRO_RENDER_EQUAL);
         al_set_render_state(ALLEGRO_ALPHA_TEST_VALUE, 255);
 
         al_set_new_bitmap_format(ALLEGRO_PIXEL_FORMAT_ARGB_8888);
+        
         al_set_new_display_flags(wndFlags);                 // some flags are user-configurable
  
         al_register_event_source(evtQ, al_get_display_event_source(myWnd));
         debug_write("Bitmap format is %d", al_get_new_bitmap_format());
+        debug_write("Acclerated Video: %s", al_get_display_option(myWnd, ALLEGRO_RENDER_METHOD) ? "yes" : "no");
     }
 
     drawReady = true;
