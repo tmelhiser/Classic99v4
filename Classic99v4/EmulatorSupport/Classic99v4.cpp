@@ -55,6 +55,7 @@ void fail(const char *str) {
 // MAN I wanted this basic signature in the old Classic99... ;)
 int main(int argc, char **argv) {
     int sys = 1981;
+    int rom = 0;
 
     if (argc > 1) {
         sys = atoi(argv[1]);
@@ -70,6 +71,10 @@ int main(int argc, char **argv) {
                 printf("  classic99v4.exe 1981 - selects 99/4A\n");
                 printf("  classic99v4.exe 1983 - selects 99/4A v2.2\n");
                 return 0;
+        }
+
+        if (argc > 2) {
+            rom = atoi(argv[2]);
         }
     }
 
@@ -112,6 +117,8 @@ int main(int argc, char **argv) {
         debug_write("Starting a 99/4A...");
         pSys = new TI994A();
     }
+
+    pSys->setRom(rom);
 
     if (!pSys->initSystem()) {
         debug_write("** System failed to initialize **");

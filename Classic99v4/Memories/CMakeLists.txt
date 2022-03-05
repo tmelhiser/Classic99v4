@@ -1,10 +1,11 @@
+add_subdirectory(ROMs)
 target_sources(classic99v4 PUBLIC
     Classic99GROM.cpp
     Classic99GROM.h
     Classic99ROM.cpp
     Classic99ROM.h
     ColecoVisionROM.cpp
-    Demonstration.cpp
+    ROMS.h
     PhoenixROM.cpp
     TI994A22GROM.cpp
     TI994A22GROM.h

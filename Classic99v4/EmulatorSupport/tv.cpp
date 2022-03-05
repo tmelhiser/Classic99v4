@@ -1,8 +1,8 @@
 // Classic99 v4xx - Copyright 2021 by Mike Brent (HarmlessLion.com)
 // See License.txt, but the answer is "just ask me first". ;)
+#include <allegro5/allegro.h>
 
 #include "Classic99v4.h"
-#include <allegro5/allegro_native_dialog.h>
 #include "debuglog.h"
 #include "tv.h"
 #include "automutex.h"
@@ -12,12 +12,12 @@
 //#include "../2xSaI\2xSaI.h"
 //#include "../FilterDLL\sms_ntsc.h"
 
+
 static const int wndFlags =  ALLEGRO_WINDOWED        // or ALLEGRO_FULLSCREEN_WINDOW | ALLEGRO_FRAMELESS
                           |  ALLEGRO_RESIZABLE
 #ifdef ALLEGRO_LINUX
                           |  ALLEGRO_GTK_TOPLEVEL    // needed for menus under X
 #endif
-                          |  0                       // or ALLEGRO_DIRECT3D or ALLEGRO_OPENGL
                           |  ALLEGRO_GENERATE_EXPOSE_EVENTS;    // maybe?
 
 // constructor and destructor
@@ -54,32 +54,33 @@ bool Classic99TV::init() {
         // TODO: read window size and position from the configuration
         debug_write("Creating window...");
 
-        al_set_new_display_flags(wndFlags);                 // some flags are user-configurable
-        al_set_new_display_option(ALLEGRO_COLOR_SIZE, 32, ALLEGRO_REQUIRE);  // require a 32-bit display buffer
-        al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 0, ALLEGRO_SUGGEST);  // suggest no multisampling
-        // al_set_new_window_position(x, y);                // TODO: actual position
-        myWnd = al_create_display(284*4, 243*4);                // TODO: actual size
-        
         windowXSize = 284*4;
         windowYSize = 243*4;
+
+        myWnd = al_create_display(windowXSize, windowYSize);
 
         if (nullptr == myWnd) {
             printf("Failed to create display\n");
             return false;
         }
 
-        al_register_event_source(evtQ, al_get_display_event_source(myWnd));
-        al_set_new_bitmap_format(ALLEGRO_PIXEL_FORMAT_ARGB_8888);   // let's see how well forcing it works...
-        // TODO: shouldn't need to use separate flags, I'm probably missing something - why are they different?
 #ifdef ALLEGRO_WINDOWS
         al_set_new_bitmap_flags(ALLEGRO_CONVERT_BITMAP|ALLEGRO_NO_PRESERVE_TEXTURE|ALLEGRO_ALPHA_TEST|ALLEGRO_MIN_LINEAR);
 #else
-        al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP|ALLEGRO_FORCE_LOCKING|ALLEGRO_ALPHA_TEST|ALLEGRO_MIN_LINEAR);
+#ifdef ALLEGRO_RASPBERRYPI
+        al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP);
+#else
+        al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP);
 #endif
-        al_set_render_state(ALLEGRO_ALPHA_TEST, 1);
+#endif
+        al_set_render_state(ALLEGRO_ALPHA_TEST, true);
         al_set_render_state(ALLEGRO_ALPHA_FUNCTION, ALLEGRO_RENDER_EQUAL);
         al_set_render_state(ALLEGRO_ALPHA_TEST_VALUE, 255);
 
+        al_set_new_bitmap_format(ALLEGRO_PIXEL_FORMAT_ARGB_8888);
+        al_set_new_display_flags(wndFlags);                 // some flags are user-configurable
+ 
+        al_register_event_source(evtQ, al_get_display_event_source(myWnd));
         debug_write("Bitmap format is %d", al_get_new_bitmap_format());
     }
 

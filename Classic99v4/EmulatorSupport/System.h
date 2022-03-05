@@ -142,6 +142,9 @@ public:
     virtual uint32_t getIntLevels() { return intReqLevel; }
     virtual bool getNMI() { return nmiReq; }
 
+    virtual int getRom() { return theRom; }
+    virtual void setRom(int id) { theRom=id; }
+
 protected:
     ALLEGRO_MUTEX *coreLock;      // our object lock
 
@@ -157,6 +160,7 @@ protected:
     double currentTimestamp;
     Classic99TV *theTV;
     Classic99Speaker *theSpeaker;
+    int theRom;
 
 private:
     // we have a single set of I/O devices that the peripherals can talk to
