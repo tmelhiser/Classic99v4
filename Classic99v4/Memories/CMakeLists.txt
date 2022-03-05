@@ -1,4 +1,4 @@
-add_subdirectory(ROMs)
+add_subdirectory(ROMS)
 target_sources(classic99v4 PUBLIC
     Classic99GROM.cpp
     Classic99GROM.h
