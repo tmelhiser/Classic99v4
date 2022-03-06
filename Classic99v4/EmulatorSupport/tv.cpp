@@ -57,8 +57,9 @@ bool Classic99TV::init() {
 #ifdef ALLEGRO_WINDOWS
     al_set_new_bitmap_flags(ALLEGRO_CONVERT_BITMAP|ALLEGRO_NO_PRESERVE_TEXTURE|ALLEGRO_ALPHA_TEST|ALLEGRO_MIN_LINEAR);    // old win
 #else
-#ifdef ALLEGRO_RASPBERRYPI
+#ifdef ALLEGRO_ARM
     al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP|ALLEGRO_ALPHA_TEST|ALLEGRO_MIN_LINEAR);
+    debug_write("We are a ")
 #else
     al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP);
 #endif
