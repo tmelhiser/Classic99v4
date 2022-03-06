@@ -49,6 +49,8 @@ bool Classic99TV::init() {
     al_set_new_bitmap_format(ALLEGRO_PIXEL_FORMAT_ARGB_8888);
     //al_set_new_display_option(ALLEGRO_RENDER_METHOD,true,ALLEGRO_REQUIRE);
     //al_set_new_display_option(ALLEGRO_SUPPORT_SEPARATE_ALPHA,1,ALLEGRO_REQUIRE);
+
+    al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_ZERO);
     
     // Windows needs to be a video bitmap, or the background color is not properly alpha'd (border goes black)
     // Mac needs a memory bitmap, or the image is lost immediately after it's displayed (blank screen except during updates, lots of stretching and corruption)
@@ -57,9 +59,9 @@ bool Classic99TV::init() {
 #ifdef ALLEGRO_WINDOWS
     al_set_new_bitmap_flags(ALLEGRO_CONVERT_BITMAP|ALLEGRO_NO_PRESERVE_TEXTURE|ALLEGRO_ALPHA_TEST|ALLEGRO_MIN_LINEAR);    // old win
 #else
-#ifdef ALLEGRO_ARM
+#ifdef ALLEGRO_RASPBERRYPI
     al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP|ALLEGRO_ALPHA_TEST|ALLEGRO_MIN_LINEAR);
-    debug_write("We are a ")
+    debug_write("We are a pi")
 #else
     al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP);
 #endif
@@ -87,11 +89,11 @@ bool Classic99TV::init() {
             return false;
         }
 
-        al_register_event_source(evtQ, al_get_display_event_source(myWnd));
-        
         al_set_render_state(ALLEGRO_ALPHA_TEST, true);
         al_set_render_state(ALLEGRO_ALPHA_FUNCTION, ALLEGRO_RENDER_EQUAL);
         al_set_render_state(ALLEGRO_ALPHA_TEST_VALUE, 255);
+
+        al_register_event_source(evtQ, al_get_display_event_source(myWnd));
  
         al_register_event_source(evtQ, al_get_display_event_source(myWnd));
         debug_write("Bitmap format is %d", al_get_new_bitmap_format());
@@ -175,12 +177,6 @@ bool Classic99TV::runWindowLoop() {
     }
 
     if ((!dontDraw) && (drawReady)) {
-        // confirmed okay on Linux and Windows
-        // TODO: can we do these outside the loop?
-        al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_ZERO);
-        al_set_render_state(ALLEGRO_ALPHA_TEST, 1);
-        al_set_render_state(ALLEGRO_ALPHA_FUNCTION, ALLEGRO_RENDER_EQUAL);
-        al_set_render_state(ALLEGRO_ALPHA_TEST_VALUE, 255);
 
         // clear the backdrop
         al_clear_to_color(bgColor);
