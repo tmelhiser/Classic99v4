@@ -86,9 +86,10 @@ bool Classic99TV::init() {
             printf("Failed to create display\n");
             return false;
         }
- 
+
         al_set_blend_color(bgColor);
-        al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_ZERO);
+        //al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_ZERO);
+        al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_ZERO);
 
         al_set_render_state(ALLEGRO_ALPHA_TEST, true);
         al_set_render_state(ALLEGRO_ALPHA_FUNCTION, ALLEGRO_RENDER_EQUAL);
@@ -98,8 +99,7 @@ bool Classic99TV::init() {
         al_clear_to_color(bgColor);
 
         al_register_event_source(evtQ, al_get_display_event_source(myWnd));
- 
-        al_register_event_source(evtQ, al_get_display_event_source(myWnd));
+
         debug_write("Bitmap format is %d", al_get_new_bitmap_format());
         debug_write("Acclerated Video: %s", al_get_display_option(myWnd, ALLEGRO_RENDER_METHOD) ? "yes" : "no");
         debug_write("Separate Alpha: %s", al_get_display_option(myWnd, ALLEGRO_SUPPORT_SEPARATE_ALPHA) ? "yes" : "no");
