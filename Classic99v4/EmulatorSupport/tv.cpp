@@ -46,6 +46,26 @@ bool Classic99TV::init() {
 
     layers.clear();
 
+    al_set_new_bitmap_format(ALLEGRO_PIXEL_FORMAT_ARGB_8888);
+    //al_set_new_display_option(ALLEGRO_RENDER_METHOD,true,ALLEGRO_REQUIRE);
+    //al_set_new_display_option(ALLEGRO_SUPPORT_SEPARATE_ALPHA,1,ALLEGRO_REQUIRE);
+    
+    // Windows needs to be a video bitmap, or the background color is not properly alpha'd (border goes black)
+    // Mac needs a memory bitmap, or the image is lost immediately after it's displayed (blank screen except during updates, lots of stretching and corruption)
+    // Linux appears to be similar
+    // Raspberry PI 4 requires memory bitmap, but has black borders suggesting the alpha isn't working. Framerate is also very dependent on window size suggesting no acceleration
+#ifdef ALLEGRO_WINDOWS
+    al_set_new_bitmap_flags(ALLEGRO_CONVERT_BITMAP|ALLEGRO_NO_PRESERVE_TEXTURE|ALLEGRO_ALPHA_TEST|ALLEGRO_MIN_LINEAR);    // old win
+#else
+#ifdef ALLEGRO_RASPBERRYPI
+    al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP);
+#else
+    al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP);
+#endif
+#endif
+    
+    al_set_new_display_flags(wndFlags);                 // some flags are user-configurable
+
     if (nullptr == evtQ) {
         // we'll maintain the event queue here
         evtQ = al_create_event_queue();
@@ -67,34 +87,15 @@ bool Classic99TV::init() {
         }
 
         al_register_event_source(evtQ, al_get_display_event_source(myWnd));
-        al_set_new_bitmap_format(ALLEGRO_PIXEL_FORMAT_ARGB_8888);   // let's see how well forcing it works...
-
-        // Windows needs to be a video bitmap, or the background color is not properly alpha'd (border goes black)
-        // Mac needs a memory bitmap, or the image is lost immediately after it's displayed (blank screen except during updates, lots of stretching and corruption)
-        // Linux appears to be similar
-        // Raspberry PI 4 requires memory bitmap, but has black borders suggesting the alpha isn't working. Framerate is also very dependent on window size suggesting no acceleration
-#ifdef ALLEGRO_WINDOWS
-        al_set_new_bitmap_flags(ALLEGRO_CONVERT_BITMAP|ALLEGRO_NO_PRESERVE_TEXTURE|ALLEGRO_ALPHA_TEST|ALLEGRO_MIN_LINEAR);    // old win
-#else
-#ifdef ALLEGRO_RASPBERRYPI
-        al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP);
-#else
-        al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP);
-#endif
-#endif
-        al_set_display_option(myWnd,ALLEGRO_RENDER_METHOD,true);
         
         al_set_render_state(ALLEGRO_ALPHA_TEST, true);
         al_set_render_state(ALLEGRO_ALPHA_FUNCTION, ALLEGRO_RENDER_EQUAL);
         al_set_render_state(ALLEGRO_ALPHA_TEST_VALUE, 255);
-
-        al_set_new_bitmap_format(ALLEGRO_PIXEL_FORMAT_ARGB_8888);
-        
-        al_set_new_display_flags(wndFlags);                 // some flags are user-configurable
  
         al_register_event_source(evtQ, al_get_display_event_source(myWnd));
         debug_write("Bitmap format is %d", al_get_new_bitmap_format());
         debug_write("Acclerated Video: %s", al_get_display_option(myWnd, ALLEGRO_RENDER_METHOD) ? "yes" : "no");
+        debug_write("Separate Alpha: %s", al_get_display_option(myWnd, ALLEGRO_SUPPORT_SEPARATE_ALPHA) ? "yes" : "no");
     }
 
     drawReady = true;
