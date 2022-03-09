@@ -1,10 +1,10 @@
 // Classic99 v4xx - Copyright 2021 by Mike Brent (HarmlessLion.com)
 // See License.txt, but the answer is "just ask me first". ;)
 #include <allegro5/allegro.h>
+#include <allegro5/allegro_native_dialog.h>
 
 #include "Classic99v4.h"
 #include <cstdio>
-#include <allegro5/allegro_native_dialog.h>
 #include "debuglog.h"
 #include "tv.h"
 #include "automutex.h"
@@ -13,7 +13,6 @@
 // TODO: Filters go here now
 //#include "../2xSaI\2xSaI.h"
 //#include "../FilterDLL\sms_ntsc.h"
-
 
 static const int wndFlags =  ALLEGRO_WINDOWED        // or ALLEGRO_FULLSCREEN_WINDOW | ALLEGRO_FRAMELESS
                           |  ALLEGRO_RESIZABLE
@@ -25,10 +24,13 @@ static const int wndFlags =  ALLEGRO_WINDOWED        // or ALLEGRO_FULLSCREEN_WI
 // constructor and destructor
 Classic99TV::Classic99TV()
 	: evtQ(nullptr)
-        , myWnd(nullptr)
-        , windowXSize(0)
-        , windowYSize(0)
-        , drawReady(false)
+    , myWnd(nullptr)
+    , windowXSize(0)
+    , windowYSize(0)
+    , scale(4)
+    , baseX(284)
+    , baseY(243)
+    , drawReady(false)
 {
     windowLock = al_create_mutex_recursive();
     bgColor = al_map_rgba(0,0,0,255);
@@ -52,10 +54,16 @@ bool Classic99TV::init() {
     // Mac needs a memory bitmap, or the image is lost immediately after it's displayed (blank screen except during updates, lots of stretching and corruption)
     // Linux appears to be similar
     // Raspberry PI 4 requires memory bitmap, but has black borders suggesting the alpha isn't working. Framerate is also very dependent on window size suggesting no acceleration
+    // From the Allegro Docs: ALLEGRO_MEMORY_BITMAP - Create a bitmap residing in system memory. 
+    //                        Operations on, and with, memory bitmaps will not be hardware accelerated. 
+    //                        However, direct pixel access can be relatively quick compared to video bitmaps,
+    //                        which depend on the display driver in use.
+    //
+    //                        Note: Allegro's software rendering routines are currently very unoptimised.
 #ifdef ALLEGRO_WINDOWS
-    al_set_new_bitmap_flags(ALLEGRO_CONVERT_BITMAP|ALLEGRO_NO_PRESERVE_TEXTURE|ALLEGRO_ALPHA_TEST|ALLEGRO_MIN_LINEAR);    // old win
+    al_set_new_bitmap_flags(ALLEGRO_CONVERT_BITMAP|ALLEGRO_MAG_LINEAR);    // old win
 #else
-    al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP|ALLEGRO_NO_PRESERVE_TEXTURE|ALLEGRO_ALPHA_TEST|ALLEGRO_MIN_LINEAR);
+    al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP|ALLEGRO_MAG_LINEAR);
 #endif
     
     al_set_new_display_flags(wndFlags);                 // some flags are user-configurable
@@ -68,8 +76,8 @@ bool Classic99TV::init() {
         // TODO: read window size and position from the configuration
         debug_write("Creating window...");
 
-        windowXSize = 284*4;
-        windowYSize = 243*4;
+        windowXSize = baseX*scale;
+        windowYSize = baseY*scale;
 
         myWnd = al_create_display(windowXSize, windowYSize);
 
@@ -77,17 +85,12 @@ bool Classic99TV::init() {
             printf("Failed to create display\n");
             return false;
         }
-
-        al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_ZERO);
-
-        al_set_render_state(ALLEGRO_ALPHA_TEST, true);
-        al_set_render_state(ALLEGRO_ALPHA_FUNCTION, ALLEGRO_RENDER_EQUAL);
-        al_set_render_state(ALLEGRO_ALPHA_TEST_VALUE, 255);
-
+        
         al_register_event_source(evtQ, al_get_display_event_source(myWnd));
 
+        debug_write("Running on: %s", ALLEGRO_PLATFORM_STR);
         debug_write("Bitmap format is %d", al_get_new_bitmap_format());
-        debug_write("Acclerated Video: %s", al_get_display_option(myWnd, ALLEGRO_RENDER_METHOD) ? "yes" : "no");
+        debug_write("Acclerated Video (%d): %s", al_get_display_option(myWnd, ALLEGRO_RENDER_METHOD), al_get_display_option(myWnd, ALLEGRO_RENDER_METHOD) ? "yes" : "no");
         debug_write("Separate Alpha: %s", al_get_display_option(myWnd, ALLEGRO_SUPPORT_SEPARATE_ALPHA) ? "yes" : "no");
 
     	drawReady = true;
@@ -170,12 +173,13 @@ bool Classic99TV::runWindowLoop() {
     if ((!dontDraw) && (drawReady)) {
 
         // clear the backdrop
-        al_clear_to_color(bgColor);
-        al_set_blend_color(bgColor);
 
+        al_clear_to_color(bgColor);
+        
         // render the layers
         for (unsigned int idx=0; idx<layers.size(); ++idx) {
             if (nullptr != layers[idx]->bmp) {
+                //al_draw_bitmap(layers[idx]->bmp,0,0,0);
                 al_draw_scaled_bitmap(layers[idx]->bmp, 0, 0, layers[idx]->w, layers[idx]->h, 
                                                         0, 0, windowXSize, windowYSize, 0);
             }

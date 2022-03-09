@@ -37,12 +37,17 @@ find_library(ALLEGRO_AUDIO_LIBRARY
     NAMES allegro_audio allegro_audio-5.0.2-mt
     HINTS ${ALLEGRO_LIBRARY_HINTS})
 
+find_library(ALLEGRO_PRIMATIVES_LIBRARY
+    NAMES allegro_primitives allegro_primitives-5.0.2-mt
+    HINTS ${ALLEGRO_LIBRARY_HINTS})
+
 set(ALLEGRO_LIBRARIES
         ${ALLEGRO_LIBRARY}
         ${ALLEGRO_MAIN_LIBRARY}
         ${ALLEGRO_DIALOG_LIBRARY}
         ${ALLEGRO_IMAGE_LIBRARY}
         ${ALLEGRO_AUDIO_LIBRARY}
+        ${ALLEGRO_PRIMATIVES_LIBRARY}
 )
 set(ALLEGRO_INCLUDE_DIRS ${ALLEGRO_INCLUDE_DIR})
 

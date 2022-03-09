@@ -220,7 +220,7 @@ const char *digpat[10][5] = {
 #define REDRAW_LINES 262
 
 // ARGB format
-#define HOT_PINK_TRANS 0x00ff00ff
+#define HOT_PINK_TRANS 0xffff00ff
 
 // So the TMS9918 only has two addresses - zero for data and 1 for registers
 
@@ -1246,19 +1246,7 @@ void TMS9918::VDPdisplay(int scanline)
 			nMax = TMS_WIDTH/4;	// because we plot 4 pixels per loop
 		}
 
-		pLine = ((uint32_t*)pImg->data);
-
-		// blank out the entire line first (unrolled 4 times)
-		uint32_t *plong = pLine;
-		for (int idx=0; idx<nMax; ++idx) {
-			*(plong++) = HOT_PINK_TRANS;	// hot pink transparent
-			*(plong++) = HOT_PINK_TRANS;	// hot pink transparent
-			*(plong++) = HOT_PINK_TRANS;	// hot pink transparent
-			*(plong++) = HOT_PINK_TRANS;	// hot pink transparent
-		}
-
-		// now center the actual draw area
-		pLine += TMS_FIRST_DISPLAY_PIXEL;
+		pLine = ((uint32_t*)pImg->data)+TMS_FIRST_DISPLAY_PIXEL;
 
 		// now that the blank is done, draw the display data
 		if (!bDisableBlank) {
